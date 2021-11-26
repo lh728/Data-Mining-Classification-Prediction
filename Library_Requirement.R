@@ -1,4 +1,4 @@
-```{r, eval=T}
+
 # install.packages("Hmisc")
 library(Hmisc)
 library(rpart)
@@ -20,4 +20,4 @@ library(caTools)
 library(ROCR)
 library(MASS)
 
-```
+
