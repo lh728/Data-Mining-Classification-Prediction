@@ -1,0 +1,336 @@
+
+<!-- =========================================================================================================================== -->
+```{r, eval=T}
+setwd("C:/Users/lhj/Desktop/Tcd/数据挖掘/group_work2")
+df<-read.csv(file = "bank-additional-full.csv",header=TRUE,sep=";")
+# describe(df)
+set.seed(1)
+```
+<!-- =========================================================================================================================== -->
+```{r, eval=T}
+df <- df[-which(df$job =="unknown"|df$marital =="unknown"|df$housing =="unknown"|df$loan =="unknown"),]
+train <- sample(nrow(df),0.7*nrow(df))
+df_train<-df[train,]
+df_test<-df[-train,]
+df_train2 <- df_train
+df_test2 <- df_test
+```
+<!-- =========================================================================================================================== -->
+```{r, eval=T}
+table(df_train$education)
+edu <- rpart(education ~ .,data = df_train[-which(df_train$education=="unknown"),][,-21] ,method = 'class',na.action = na.omit)  
+edu2 <- predict(edu,df_train[which(df_train$education == "unknown"),][-21],type="class")
+df_train[which(df_train$education=="unknown"),][,4] <- edu2
+table(df_train$education)
+df_train$education[df_train$education==1] <- "basic.4y"
+df_train$education[df_train$education==3] <- "basic.9y"
+df_train$education[df_train$education==4] <- "high.school"
+df_train$education[df_train$education==6] <- "professional.course"
+df_train$education[df_train$education==7] <- "university.degree"
+table(df_train$education)
+
+
+table(df_train$default)
+def <- rpart(default ~ .,data = df_train2[-which(df_train2$default=="unknown"),][,-21],
+               na.action = na.omit,method = "class")
+def2 <- predict(def,df_train2[which(df_train2$default=="unknown"),][-21],type="class")
+df_train[which(df_train$default=="unknown"),][,5] <- def2
+table(df_train$default)
+df_train$default[df_train$default==1] <- "no"
+table(df_train$default)
+
+```
+
+```{r, eval=T}
+df_train$default<-as.factor(sub("no","0",df_train$default,ignore.case = FALSE,fixed = TRUE))
+df_train$default<-as.factor(sub("yes","1",df_train$default,ignore.case = FALSE,fixed = TRUE))
+df_train$housing<-as.factor(sub("no","0",df_train$housing,ignore.case = FALSE,fixed = TRUE))
+df_train$housing<-as.factor(sub("yes","1",df_train$housing,ignore.case = FALSE,fixed = TRUE))
+df_train$loan<-as.factor(sub("no","0",df_train$loan,ignore.case = FALSE,fixed = TRUE))
+df_train$loan<-as.factor(sub("yes","1",df_train$loan,ignore.case = FALSE,fixed = TRUE))
+```
+<!-- =========================================================================================================================== -->
+```{r, eval=T}
+
+df_train$education<-factor(df_train$education,level=c("illiterate", "basic.4y", "basic.6y", "basic.9y", "high.school", 
+                                "professional.course", "university.degree"),labels = c(1:7))
+```
+<!-- =========================================================================================================================== -->
+```{r, eval=T}
+b_marital <- class.ind(df_train$marital)
+df_train <- cbind(df_train[-3],b_marital)
+
+df_train$job[df_train$job=="blue-collar"] <- "blue_collar"
+df_train$job[df_train$job=="self-employed"] <- "self_employed"
+b_job <- class.ind(df_train$job)
+df_train <- cbind(df_train[-2],b_job)
+b_contact <- class.ind(df_train$contact)
+df_train <- cbind(df_train[-6],b_contact)
+b_month <- class.ind(df_train$month)
+df_train <- cbind(df_train[-6],b_month)
+b_day <- class.ind(df_train$day_of_week)
+df_train <- cbind(df_train[-6],b_day)
+b_poutcome <- class.ind(df_train$poutcome)
+df_train <- cbind(df_train[-10],b_poutcome)
+```
+<!-- =========================================================================================================================== -->
+```{r, eval=T}
+a <-fivenum(df_train$duration)
+df_train$duration<-as.numeric(cut(df_train$duration,a,labels=c(1,2,3,4),ordered_result = T,include.lowest=T))
+table(df_train$duration)
+```
+```{r, eval=T}
+df_train$y <- as.factor(df_train$y)
+df_train<-SMOTE(y~.,df_train,perc.over=700,perc.under=100)
+write.csv(df_train,file = "afterData.csv")
+```
+<!-- =========================================================================================================================== -->
+```{r, eval=T}
+table(df_test$education)
+edu <- rpart(education ~ .,data = df_test[-which(df_test$education=="unknown"),][,-21] ,method = 'class',na.action = na.omit)  
+edu2 <- predict(edu,df_test[which(df_test$education == "unknown"),][-21],type="class")
+df_test[which(df_test$education=="unknown"),][,4] <- edu2
+table(df_test$education)
+df_test$education[df_test$education==1] <- "basic.4y"
+df_test$education[df_test$education==3] <- "basic.9y"
+df_test$education[df_test$education==4] <- "high.school"
+df_test$education[df_test$education==6] <- "professional.course"
+df_test$education[df_test$education==7] <- "university.degree"
+table(df_test$education)
+
+
+table(df_test$default)
+
+df_test$default[df_test$default=="unknown"] <- "no"
+table(df_test$default)
+
+df_test$default<-as.factor(sub("no","0",df_test$default,ignore.case = FALSE,fixed = TRUE))
+df_test$default<-as.factor(sub("yes","1",df_test$default,ignore.case = FALSE,fixed = TRUE))
+df_test$housing<-as.factor(sub("no","0",df_test$housing,ignore.case = FALSE,fixed = TRUE))
+df_test$housing<-as.factor(sub("yes","1",df_test$housing,ignore.case = FALSE,fixed = TRUE))
+df_test$loan<-as.factor(sub("no","0",df_test$loan,ignore.case = FALSE,fixed = TRUE))
+df_test$loan<-as.factor(sub("yes","1",df_test$loan,ignore.case = FALSE,fixed = TRUE))
+df_test$education<-factor(df_test$education,level=c("illiterate", "basic.4y", "basic.6y", "basic.9y", "high.school", 
+                                "professional.course", "university.degree"),labels = c(1:7))
+b_marital <- class.ind(df_test$marital)
+df_test <- cbind(df_test[-3],b_marital)
+
+df_test$job[df_test$job=="blue-collar"] <- "blue_collar"
+df_test$job[df_test$job=="self-employed"] <- "self_employed"
+b_job <- class.ind(df_test$job)
+df_test <- cbind(df_test[-2],b_job)
+b_contact <- class.ind(df_test$contact)
+df_test <- cbind(df_test[-6],b_contact)
+b_month <- class.ind(df_test$month)
+df_test <- cbind(df_test[-6],b_month)
+b_day <- class.ind(df_test$day_of_week)
+df_test <- cbind(df_test[-6],b_day)
+b_poutcome <- class.ind(df_test$poutcome)
+df_test <- cbind(df_test[-10],b_poutcome)
+a <-fivenum(df_test$duration)
+df_test$duration<-as.numeric(cut(df_test$duration,a,labels=c(1,2,3,4),ordered_result = T,include.lowest=T))
+table(df_test$duration)
+df_test$y <- as.factor(df_test$y)
+
+```
+<!-- =========================================================================================================================== -->
+```{r, eval=T}
+logit<-glm(y~.,data = df_train,family = binomial())
+summary(logit)
+prob <- predict(logit,df_test,type = "response")
+logit_pred<-factor(prob>.5,levels = c(FALSE,TRUE),
+                   labels = c("yes","no"))
+logit_perf<-table(df_test$y,logit_pred,
+                  dnn = c("Actual","Predicted"))
+logit_perf
+
+```
+```{r, eval=T}
+
+b_tree<-rpart(y ~.,data = df_train,method = "class",
+             parms = list(split="information"))
+
+b_tree$cptable
+plotcp(b_tree)
+```
+```{r, eval=T}
+b_tree_prune<-prune(b_tree,cp=.01)
+
+prp(b_tree_prune,type = 2,extra = 104,
+    fallen.leaves = TRUE)
+b_tree_pred<-predict(b_tree_prune,df_test,type="class")
+
+b_tree_perf<-table(df_test$y,b_tree_pred,dnn=c("Actual","Predicted"))
+b_tree_perf
+
+
+```
+
+```{r, eval=T}
+set.seed(2)
+forest <- randomForest(y ~., data = df_train, na.action = na.roughfix, importance = TRUE)
+
+forest
+importance(forest,type=2) 
+forest_pred<-predict(forest,df_test)
+forest_perf<-table(df_test$y,forest_pred,
+                   dnn=c("Actual","Predicted"))
+forest_perf
+
+
+```
+
+```{r, eval=T}
+set.seed(3)
+svm2 <- svm(y~.,data=df_train)
+svm2
+svm_pred<-predict(svm2,na.omit(df_test))
+svm_perf<-table(na.omit(df_test)$y,svm_pred,
+                dnn=c("Actual","Predicted"))
+svm_perf
+
+
+
+```
+```{r, eval=T}
+naive1 <-naiveBayes(y~.,data = df_train)
+summary(naive1)
+naive_pred <- predict(naive1,df_test,type = "class")
+
+naive_perf<-table(df_test$y,naive_pred,
+                  dnn = c("Actual","Predicted"))
+naive_perf
+
+```
+
+```{r, eval=T}
+
+evaluation <- function(table,n=4){
+  tn = table[2,2]
+  fp = table[2,1]
+  fn = table[1,2]
+  tp = table[1,1]
+  sensitivity = tp / ( tp + fn )
+  specificity = tn / ( tn + fp )
+  positive = tp / (tp + fp)
+  negative = tn / (tn + fn)
+  hitrate = (tp + tn)/(tp + tn + fp + fn)
+  result<- paste("Sensitivity = ",round(sensitivity,n),
+                 "\nSpecificity = ",round(specificity,n),
+                 "\nPositive predictive Value = ",round(positive,n),
+                 "\nNegative predictive Value = ",round(negative,n),
+                 "\nAccuracy = ",round(hitrate,n),
+                 "\n",sep="")
+  cat(result)
+}
+evaluation(logit_perf)
+evaluation(b_tree_perf)
+evaluation(forest_perf)
+evaluation(svm_perf)
+evaluation(naive_perf)
+
+```
+```{r, eval=T}
+row_names <-  c("logit","decision_tree","random_forest","svm","naive")
+result_accuracy <- c(0.8825,0.9031,0.9083,0.9035,0.8779)
+result_precision <- c(0.9434,0.9253,0.9279,0.9304,0.9301)
+result_sensitivity <- c(0.9226,0.9688,0.9719,0.9631,0.9321)
+result_specificity <- c(0.573,0.3964,0.4175,0.4438,0.4599)
+result <- data.frame(row_names,Accuracy = result_accuracy,Precision = result_precision,Sensitivity = result_sensitivity,
+                     Specificity = result_specificity)
+# row.names(result) <- c("logit","decision_tree","condition_inference","random_forest","svm","naive")
+plot1 <- ggplot(data = result, aes(x = row_names,group = 5)) + geom_line(aes(y = Accuracy,linetype = "accuracy", colour = "accuracy"),size = 0.8)
+plot2 <- plot1 + geom_line(aes(y = result$Precision, linetype = "precision", colour = "precision"), size = 0.8)
+plot3 <- plot2 + geom_line(aes(y = result$Sensitivity, linetype = "Sensitivity", colour = "Sensitivity"), size = 0.8)
+plot4 <- plot3 + geom_line(aes(y = result$Specificity, linetype = "Specificity", colour = "Specificity"), size = 0.8)
+
+
+plot4 + scale_linetype_manual(name = "", values = c("accuracy" = "twodash", "precision" = "solid","Sensitivity" = "twodash",
+                                                    "Specificity" = "twodash")) +
+  scale_colour_manual(name = "", values = c("accuracy" = "red", "precision" = "blue","Sensitivity" = "green","Specificity"="black")) + 
+  labs(title = 'Different Model Evaluation') + theme(axis.title =element_blank()) + theme_minimal(12) + scale_color_brewer(name='',palette='Set1') 
+```
+```{r, eval=T}
+ROCR_pred_test <- prediction(prob,df_test$y)
+ROCR_perf_test <- performance(ROCR_pred_test,'tpr','fpr')
+plot(ROCR_perf_test,colorize=TRUE,print.cutoffs.at=seq(0.1,by=0.1))
+logit_perf <- performance(ROCR_pred_test,"lift","rpp")
+plot(logit_perf, main="Logit Lift curve")
+
+```
+
+```{r, eval=T}
+pre2 = predict(b_tree_prune,df_test,type = "prob")
+pred_val <-prediction(pre2[,2],df_test$y)
+perf_val <- performance(pred_val,"auc")
+perf_val
+d_tree_perf <- performance(pred_val, measure="lift", x.measure="rpp")
+plot(d_tree_perf,main="D_tree Lift curve")
+```
+```{r, eval=T}
+pre3 = predict(forest,df_test,type = "prob")
+pred_val_rf <-prediction(pre3[,2],df_test$y)
+perf_val_rf <- performance(pred_val_rf,"auc")
+perf_val_rf
+rf <- performance(pred_val_rf, measure="lift", x.measure="rpp")
+plot(rf,main="RF Lift curve")
+
+```
+```{r, eval=T}
+# liftplot = function(pred, truth, ...){
+#    predob = prediction(pred, truth)
+#    perf = performance(predob, "lift", "rpp")
+#    plot(perf,...)}
+pre4 = attributes(predict(svm2, df_test,decision.values = TRUE))$decision.values
+# liftplot(pre4, df_test$y, main = "Svm Lift curve")
+
+pred_val_svm <-prediction(pre4,df_test$y)
+perf_val_svm <- performance(pred_val_svm,"auc")
+perf_val_svm
+svm_pref <- performance(pred_val_svm, measure="lift", x.measure="rpp")
+plot(svm_pref,main="SVM Lift curve")
+```
+```{r, eval=T}
+
+pre5 = predict(naive1,df_test,type = "raw")
+pred_val_na <-prediction(pre5[,2],df_test$y)
+perf_val_na <- performance(pred_val,"auc")
+perf_val_na
+naive2 <- performance(pred_val_na, measure="lift", x.measure="rpp")
+plot(naive2,main="Naive Lift curve")
+```
+```{r, eval=T}
+plot(logit_perf, col = 'red',main = "lift chart",sub = "red : logit | blue : d_tree | green : rf | black : naive",
+     col.sub = 'red')
+plot(d_tree_perf, add = TRUE, col = 'blue',)
+plot(rf,add = TRUE, col = 'green')
+plot(naive2,add = TRUE, col = 'black')
+
+```
+```{r, eval=T}
+
+for_lift <- data.frame(Class = df_test$y,
+                       logit = prob,
+                       decision_tree = pre2[,2],
+                       rf = pre3[,2],
+                       svm = pre4,
+                       naive = pre5[,2] )
+lift_curve <- lift(Class ~ logit + decision_tree + rf + naive, data = for_lift)
+ggplot(lift_curve$data)+
+  geom_line(aes(CumTestedPct, CumEventPct, color = liftModelVar))+
+  xlab("% Samples tested")+
+  ylab("% Samples found")+
+  scale_color_discrete(guide = guide_legend(title = "method"))+
+  geom_polygon(data = data.frame(x = c(0, lift_curve$pct, 100, 0),
+                                 y = c(0, 100, 100, 0)),
+               aes(x = x, y = y), alpha = 0.1)
+ggplot(lift_curve$data) +   geom_line(aes(CumTestedPct, lift, color = liftModelVar))
+```
+
+
+
+
+
+
+
+
