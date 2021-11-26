@@ -1,0 +1,23 @@
+```{r, eval=T}
+# install.packages("Hmisc")
+library(Hmisc)
+library(rpart)
+library(nnet)
+library(caret)
+library(DMwR)
+library(rpart.plot)
+# install.packages("party")
+library(party)
+# install.packages("randomForest")
+library(randomForest)
+library(e1071)
+library(ggplot2)
+# install.packages("gcookbook")
+library(gcookbook)
+library(pROC)
+library("dplyr")                                
+library(caTools)
+library(ROCR)
+library(MASS)
+
+```
