@@ -4,7 +4,7 @@
 setwd("C:/Users/lhj/Desktop/Tcd/数据挖掘/group_work2")
 df<-read.csv(file = "bank-additional-full.csv",header=TRUE,sep=";")
 # describe(df)
-set.seed(1)
+set.seed(1) 
 ```
 <!-- =========================================================================================================================== -->
 ```{r, eval=T}
